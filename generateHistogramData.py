@@ -63,11 +63,20 @@ def gatherHistogramData(stockName, pastXdays=365, bin0=15, returnCurrent = True)
         return [xNew,yNew]
 
 # Basic example of concept:
-histData = gatherHistogramData('goog')
+stockName = 'goog'
+histData = gatherHistogramData(stockName)
 plt.plot(histData[2][0],histData[2][1],linewidth = 3.0,color='darkblue')
 plt.plot(histData[0],histData[1],linewidth = 5.0,color='black')
-# Turn off y-axis
+
+# Fix Axes:
+
 frame1 = plt.gca()
 frame1.axes.get_yaxis().set_visible(False)
+frame1.spines['top'].set_visible(False)
+frame1.spines['right'].set_visible(False)
+frame1.spines['left'].set_visible(False)
+plt.tick_params(axis='x',which='both',top='off')
+frame1.patch.set_visible(False)
 plt.xlabel('Stock Price')
+
 plt.show()
