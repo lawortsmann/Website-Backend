@@ -71,36 +71,53 @@ class stockScreener:
                 pass
         return outputData
 
-NYSEdata = stockScreener()
-with open('NYSE.csv', 'r') as csvfile:
-    filereader = csv.reader(csvfile)
-    notFirstRow = False
-    for row in filereader:
-        Symbol  = row[0]
-        Name  = row[1]
-        IPOyear = row[4]
-        Sector  = row[5]
-        industry = row[6]
-        if notFirstRow:
-            NYSEdata.addStock(Symbol,Name,IPOyear,Sector,industry)
-        else:
-            notFirstRow = True
+    def getTrending(self):
+        trending = []
+        for ticker in self.bySymbol:
+            sData = Share(ticker)
+            try:
+                sData.get_avg_daily_volume()
+                avgVolume = float(sData.get_avg_daily_volume())
+                pVolume = float(sData.get_volume())
+                sdVolume = (avgVolume)**0.5
+                trendingP = (pVolume - avgVolume)/sdVolume
+                trending.append((ticker,trendingP))
+            except:
+                pass
+        trending.sort(key=lambda x: x[1], reverse = True)
+        trending = [s for s in trending if s[1]>0]
+        return trending
 
-NASDAQdata = stockScreener()
-with open('NASDAQ.csv', 'r') as csvfile:
-    filereader = csv.reader(csvfile)
-    notFirstRow = False
-    for row in filereader:
-        Symbol  = row[0]
-        Name  = row[1]
-        IPOyear = row[4]
-        Sector  = row[5]
-        industry = row[6]
-        if notFirstRow:
-            NASDAQdata.addStock(Symbol,Name,IPOyear,Sector,industry)
-        else:
-            notFirstRow = True
 
-sectors = NYSEdata.bySector.keys()
-print sectors
-NYSEdata.metricsForSector(sectors[0], screenParam = ['avgVolume','mrkCap'])
+def getNYSEdata():
+    NYSEdata = stockScreener()
+    with open('NYSE.csv', 'r') as csvfile:
+        filereader = csv.reader(csvfile)
+        notFirstRow = False
+        for row in filereader:
+            Symbol  = row[0]
+            Name  = row[1]
+            IPOyear = row[4]
+            Sector  = row[5]
+            industry = row[6]
+            if notFirstRow:
+                NYSEdata.addStock(Symbol,Name,IPOyear,Sector,industry)
+            else:
+                notFirstRow = True
+    return NYSEdata
+def getNASDAQdata():
+    NASDAQdata = stockScreener()
+    with open('NASDAQ.csv', 'r') as csvfile:
+        filereader = csv.reader(csvfile)
+        notFirstRow = False
+        for row in filereader:
+            Symbol  = row[0]
+            Name  = row[1]
+            IPOyear = row[4]
+            Sector  = row[5]
+            industry = row[6]
+            if notFirstRow:
+                NASDAQdata.addStock(Symbol,Name,IPOyear,Sector,industry)
+            else:
+                notFirstRow = True
+    return NASDAQdata

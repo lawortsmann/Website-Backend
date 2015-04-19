@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # userAccount.py
-
 """
-Version: 4.08.2015
-
+Version: 4.18.2015
 @author: Luke_Wortsmann
 """
+import datetime as dt
+from yahoo_finance import Share
 
 class userAccount:
     def __init__(self,newuserName,email,newfirstName,newlastName,encrypPass):
@@ -30,6 +30,32 @@ class userAccount:
     def purchaseAsset(self,asset,amount):
         self.accountData.buyAsset(asset,amount)
 
+    def StocksOwned(self):
+        owned = {}
+        for asset in self.accountData.trades:
+            amount = 0
+            value = 0
+            netValue = 0
+            spent = 0
+            for trade in self.accountData.trades[asset]:
+                amount += trade.amountHeld
+                value += trade.currentValue
+                netValue += (trade.currentValue - trade.purchaseValue)
+                spent += trade.purchaseValue
+            if amount != 0:
+                owned[asset] = (amount,value,netValue,spent)
+        return owned
+
+    def percentReturn(self):
+        owned = self.StocksOwned()
+        gains = 0
+        spent = 0
+        for stock in owned:
+            gains += owned[stock][1]
+            spent += owned[stock][3]
+        percentReturn = (1.0 - (gains/spent))*100.0
+        self.pReturn = percentReturn
+        return percentReturn
 
 class AssetsHeld:
     def __init__(self):
@@ -85,10 +111,16 @@ def Asset:
 
     def getPrice(self):
         # return current price
-        return price
+        stock = Share(self.ticker)
+        try:
+            price = float(stock.get_price())
+            return price
+        except:
+            print "ERROR: Invalid Asset"
+            return
 
     def getTime(self):
-        # return current time
+        currentTime = dt.datetime.now()
         return currentTime
 
 class Trade:
@@ -110,6 +142,12 @@ class Trade:
              self.amountHeld = 0
              return amount
 
-def LeaderBoard(dataBase):
-    leaders = sorted(dataBase, key = lambda x: x.accountData.recalculateValue())
-    return [(user.userName,x.accountData.recalculateValue()) for user in leaders]
+def LeaderBoard(dataBase, byReturn = True):
+    if byReturn:
+        leaders = sorted(dataBase, key = lambda x: x.accountData.percentReturn())
+        disp = [(user.userName,user.accountData.percentReturn()) for user in leaders]
+    else:
+        leaders = sorted(dataBase, key = lambda x: x.accountData.recalculateValue())
+        disp = [(user.userName,user.accountData.recalculateValue()) for user in leaders]
+
+    return disp
