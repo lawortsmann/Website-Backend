@@ -106,14 +106,13 @@ class AssetsHeld:
 
 def Asset:
     def __init__(self,newticker):
-        self.ticker = ticker
-
+        self.ticker = newticker
+        self.stock = Share(newticker)
 
     def getPrice(self):
         # return current price
-        stock = Share(self.ticker)
         try:
-            price = float(stock.get_price())
+            price = float(self.stock.get_price())
             return price
         except:
             print "ERROR: Invalid Asset"

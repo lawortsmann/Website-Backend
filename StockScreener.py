@@ -22,23 +22,19 @@ import matplotlib.pyplot as plt
 import matplotlib.font_manager as font_manager
 from statistics import mean
 from yahoo_finance import Share
+import time
 
 class stockScreener:
     def __init__(self):
         self.bySector = {}
         self.bySymbol = {}
-        self.byIPOyear = {}
 
-    def addStock(self,Symbol,Name,IPOyear,Sector,industry):
-        self.bySymbol[Symbol] = [Symbol,Name,IPOyear,Sector,industry]
+    def addStock(self,Symbol,Name,Sector):
+        self.bySymbol[Symbol] = [Symbol,Name,Sector]
         try:
-            self.bySector[Sector].append([Symbol,Name,IPOyear,Sector,industry])
+            self.bySector[Sector].append([Symbol,Name,Sector])
         except KeyError:
-            self.bySector[Sector] = [[Symbol,Name,IPOyear,Sector,industry]]
-        try:
-            self.byIPOyear[IPOyear].append([Symbol,Name,IPOyear,Sector,industry])
-        except KeyError:
-            self.byIPOyear[IPOyear] = [[Symbol,Name,IPOyear,Sector,industry]]
+            self.bySector[Sector] = [[Symbol,Name,Sector]]
 
     def metricsForSector(self,Sector, screenParam = ['avgVolume'], screenParamRange = (float("-inf"),float("inf"))):
         outputData = []
@@ -73,17 +69,27 @@ class stockScreener:
 
     def getTrending(self):
         trending = []
-        for ticker in self.bySymbol:
-            sData = Share(ticker)
+        k = 0
+        retry = 0
+        maxRetries = 3
+        while k < len(self.bySymbol.keys()):
+            ticker = self.bySymbol.keys()[k]
             try:
+                sData = Share(ticker)
                 sData.get_avg_daily_volume()
                 avgVolume = float(sData.get_avg_daily_volume())
                 pVolume = float(sData.get_volume())
                 sdVolume = (avgVolume)**0.5
                 trendingP = (pVolume - avgVolume)/sdVolume
                 trending.append((ticker,trendingP))
+                k += 1
             except:
-                pass
+                time.sleep(0.05)
+                retry+=1
+                if retry >= maxRetries:
+                    retry = 0
+                    k += 1
+
         trending.sort(key=lambda x: x[1], reverse = True)
         trending = [s for s in trending if s[1]>0]
         return trending
@@ -101,10 +107,26 @@ def getNYSEdata():
             Sector  = row[5]
             industry = row[6]
             if notFirstRow:
-                NYSEdata.addStock(Symbol,Name,IPOyear,Sector,industry)
+                NYSEdata.addStock(Symbol,Name,Sector)
             else:
                 notFirstRow = True
     return NYSEdata
+
+def getSP500data():
+    sp500data = stockScreener()
+    with open('sp500.csv', 'r') as csvfile:
+        filereader = csv.reader(csvfile)
+        notFirstRow = False
+        for row in filereader:
+            Symbol  = row[0]
+            Name  = row[1]
+            Sector  = row[2]
+            if notFirstRow:
+                sp500data.addStock(Symbol,Name,Sector)
+            else:
+                notFirstRow = True
+    return sp500data
+
 def getNASDAQdata():
     NASDAQdata = stockScreener()
     with open('NASDAQ.csv', 'r') as csvfile:
@@ -117,7 +139,7 @@ def getNASDAQdata():
             Sector  = row[5]
             industry = row[6]
             if notFirstRow:
-                NASDAQdata.addStock(Symbol,Name,IPOyear,Sector,industry)
+                NASDAQdata.addStock(Symbol,Name,Sector)
             else:
                 notFirstRow = True
     return NASDAQdata

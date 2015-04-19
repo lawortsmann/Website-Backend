@@ -6,5 +6,5 @@ Version: 4.18.2015
 """
 from yahoo_finance import Share
 import StockScreener as SS
-NYSEdata = SS.getNYSEdata()
-print NYSEdata.getTrending()
+sp500data = SS.getSP500data()
+print sp500data.getTrending()
