@@ -8,12 +8,12 @@ import datetime as dt
 from yahoo_finance import Share
 
 class userAccount:
-    def __init__(self,newuserName,email,newfirstName,newlastName,encrypPass):
-        private self.userEmail = email
+    def __init__(self,newuserName,newEmail,newName,newPassword,newid):
+        self.userEmail = newEmail
         self.userName = newuserName
-        self.firstName = newfirstName
-        self.lastName = newlastName
-        self.password = encrypPass
+        self.fullName = newName
+        self.password = newPassword
+        self.userID = newid
         self.accountData = AssetsHeld()
         self.accountData.addCash(100000.)
 
@@ -23,7 +23,6 @@ class userAccount:
                 self.password = newPass
             else:
                 print "Error: Passwords do not match."
-                break
         else:
             print "Wrong password, please try again."
 
@@ -104,7 +103,7 @@ class AssetsHeld:
         return newValue + self.cash
 
 
-def Asset:
+class Asset:
     def __init__(self,newticker):
         self.ticker = newticker
         self.stock = Share(newticker)
